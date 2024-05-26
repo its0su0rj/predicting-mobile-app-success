@@ -7,9 +7,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Load saved models
-rf_model = joblib.load('saved_models/random_forest_model.pkl')
-lgbm_model = joblib.load('saved_models/lgbm_model.pkl')
-xgb_model = joblib.load('saved_models/xgb_model.pkl')
+rf_model = joblib.load('random_forest_model.pkl')
+lgbm_model = joblib.load('lgbm_model.pkl')
+xgb_model = joblib.load('xgb_model.pkl')
 
 # Title of the Streamlit app
 st.title("Machine Learning Model Evaluation and Visualization")
