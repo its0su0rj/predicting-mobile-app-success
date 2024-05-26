@@ -5,4 +5,5 @@ streamlit==1.30.0
 pandas
 seaborn
 matplotlib
-
+xgboost
+lightgbm
