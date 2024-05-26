@@ -16,28 +16,29 @@ st.title("Mobile App Success Prediction")
 
 # Sidebar for uploading data and selecting options
 st.sidebar.header("Upload your data")
-uploaded_file_description = st.sidebar.file_uploader("Upload your applestore_description.csv file", type=["csv"])
-uploaded_file_applestore = st.sidebar.file_uploader("Upload your applestore.csv file", type=["csv"])
+uploaded_file_description = st.sidebar.file_uploader("Upload your CSV file for app descriptions", type=["csv"])
+uploaded_file_main = st.sidebar.file_uploader("Upload your main CSV file", type=["csv"])
 
 st.sidebar.header("Choose a model to evaluate")
 model_choice = st.sidebar.selectbox("Select Model", ("Random Forest", "LightGBM", "XGBoost"))
 
-# Load and merge the uploaded data
-if uploaded_file_description is not None and uploaded_file_applestore is not None:
-    # Read the CSV files
+# Load the uploaded data
+if uploaded_file_description is not None and uploaded_file_main is not None:
     data_description = pd.read_csv(uploaded_file_description)
-    data_applestore = pd.read_csv(uploaded_file_applestore)
+    data_main = pd.read_csv(uploaded_file_main)
 
-    # Merge the data on 'id'
-    data_merged = pd.merge(data_description, data_applestore, on='id')
+    # Merge the dataframes on 'id'
+    data_merged = pd.merge(data_main, data_description, on='id')
 
-    st.write("### Merged Data Preview")
+    st.write("### Data Preview")
     st.write(data_merged.head())
 
-    # Extract the features (excluding 'id', 'track_name', and any other non-numeric columns)
-    # Assuming 'app_desc' needs to be handled or dropped if it's a text column.
-    X = data_merged.drop(columns=['id', 'track_name', 'app_desc', 'currency', 'ver', 'cont_rating', 'prime_genre'])
-    y = data_merged['user_rating']  # Assuming 'user_rating' is the target variable
+    # Check if columns exist before dropping
+    columns_to_drop = ['id', 'track_name', 'app_desc', 'currency', 'ver', 'cont_rating', 'prime_genre']
+    columns_to_drop = [col for col in columns_to_drop if col in data_merged.columns]
+
+    X = data_merged.drop(columns=columns_to_drop)
+    y = data_merged['user_rating']
 
     # Predict using the selected model
     if model_choice == "Random Forest":
@@ -51,22 +52,28 @@ if uploaded_file_description is not None and uploaded_file_applestore is not Non
     y_pred = model.predict(X)
 
     # Display accuracy
-    st.write(f"### Predictions for {model_choice}:")
-    data_merged['Predicted Success'] = y_pred
-    st.write(data_merged[['track_name', 'Predicted Success']])
+    accuracy = accuracy_score(y, y_pred)
+    st.write(f"### Accuracy of {model_choice}: {accuracy:.4f}")
 
-    # Plot heatmap of correlations
-    st.write("### Heatmap of feature correlations:")
-    corr = data_merged.corr()
+    # Display confusion matrix
+    st.write("### Confusion Matrix")
+    cm = confusion_matrix(y, y_pred)
     fig, ax = plt.subplots()
-    sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
     st.pyplot(fig)
 
-    # Plot a count plot of the predictions
-    st.write("### Count plot of predictions:")
-    fig, ax = plt.subplots()
-    sns.countplot(x='Predicted Success', data=data_merged, ax=ax)
-    st.pyplot(fig)
+    # Visualize feature importance if applicable
+    if hasattr(model, 'feature_importances_'):
+        st.write("### Feature Importances")
+        feature_importances = model.feature_importances_
+        feature_names = X.columns
+        importance_df = pd.DataFrame({
+            'feature': feature_names,
+            'importance': feature_importances
+        }).sort_values(by='importance', ascending=False)
 
+        fig, ax = plt.subplots()
+        sns.barplot(x='importance', y='feature', data=importance_df, ax=ax)
+        st.pyplot(fig)
 else:
     st.write("Please upload both CSV files to proceed.")
