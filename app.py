@@ -36,10 +36,10 @@ st.sidebar.header("Director")
 st.sidebar.text_input("Director Name")
 
 # Main area with model selection and evaluation
-st.header("Movie Rating Prediction Models")
+st.header("App success Prediction Models")
 
 # Model selection
-model_choice = st.selectbox("Choose a prediction model", ["Support Vector Machine", Random Forest", Decision Tree Classifier"])
+model_choice = st.selectbox("Choose a prediction model", ["Support Vector Machine", "Random Forest", "Decision Tree Classifier"])
 
 # Load dataset for demonstration
 @st.cache_data
